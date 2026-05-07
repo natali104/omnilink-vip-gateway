@@ -1,5 +1,7 @@
 export type Urgency = "Low" | "Medium" | "Critical";
 
+export type Industry = "Hotel" | "Airline" | "Restaurant";
+
 export type IncidentStatus =
   | "Open"
   | "AI_Approved"
@@ -21,6 +23,9 @@ export interface VipIncident {
   final_action_taken: string | null;
   resolved_by: string | null;
   resolved_at: string | null;
+  industry: Industry;
+  location: string | null;
+  priority_score: number | null;
 }
 
 export interface AiTriageResult {
