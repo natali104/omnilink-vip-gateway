@@ -22,22 +22,28 @@ create table if not exists public.vip_incidents (
                      check (status in ('Open', 'AI_Approved', 'Human_Overridden', 'Resolved')),
   final_action_taken text,
   resolved_by        text,
-  resolved_at        timestamptz
+  resolved_at        timestamptz,
+
+  -- Multi-industry support
+  industry           text not null default 'Hotel'
+                     check (industry in ('Hotel', 'Airline', 'Restaurant')),
+  location           text,
+  priority_score     numeric
 );
 
--- Index for dashboard queries ordered by recency and urgency
+-- Indexes for dashboard queries
 create index if not exists idx_incidents_created_at on public.vip_incidents (created_at desc);
 create index if not exists idx_incidents_status on public.vip_incidents (status);
+create index if not exists idx_incidents_industry on public.vip_incidents (industry);
 
--- Enable Row Level Security (disable for development; add policies for production)
+-- Row Level Security
 alter table public.vip_incidents enable row level security;
 
--- Permissive policy for development — replace with role-based policies in production
 create policy "Allow all access during development"
   on public.vip_incidents
   for all
   using (true)
   with check (true);
 
--- Enable Realtime for the vip_incidents table
+-- Enable Realtime
 alter publication supabase_realtime add table public.vip_incidents;

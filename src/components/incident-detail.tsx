@@ -22,8 +22,18 @@ import {
   Brain,
   FileText,
   Shield,
+  MapPin,
+  Hotel,
+  Plane,
+  UtensilsCrossed,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+const INDUSTRY_ICON = {
+  Hotel: <Hotel className="h-4 w-4 text-amber-400" />,
+  Airline: <Plane className="h-4 w-4 text-blue-400" />,
+  Restaurant: <UtensilsCrossed className="h-4 w-4 text-emerald-400" />,
+};
 
 interface IncidentDetailProps {
   incident: VipIncident | null;
@@ -98,142 +108,118 @@ export function IncidentDetail({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-slate-900 border-slate-700 text-white">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-[#0c1222] border-white/10 text-white">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg">
             <Shield className="h-5 w-5 text-amber-400" />
             Incident Detail
           </DialogTitle>
-          <DialogDescription className="text-slate-400">
-            ID: {incident.id}
+          <DialogDescription className="text-slate-500 flex items-center gap-2">
+            <span className="font-mono text-xs">{incident.id.slice(0, 8)}…</span>
+            {INDUSTRY_ICON[incident.industry]}
+            <span>{incident.industry}</span>
+            {incident.location && (
+              <>
+                <MapPin className="h-3 w-3 ml-1" />
+                <span>{incident.location}</span>
+              </>
+            )}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 mt-2">
-          {/* Raw vs AI comparison */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <h3 className="text-sm font-semibold text-slate-300 flex items-center gap-1">
-                <FileText className="h-4 w-4" />
+              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                <FileText className="h-3.5 w-3.5" />
                 Raw Field Report
               </h3>
-              <div className="bg-slate-800 rounded-lg p-3 text-sm text-slate-300 border border-slate-700">
+              <div className="bg-white/[0.03] rounded-xl p-3 text-sm text-slate-300 border border-white/5">
                 {incident.raw_incident_text}
               </div>
             </div>
-
             <div className="space-y-2">
-              <h3 className="text-sm font-semibold text-slate-300 flex items-center gap-1">
-                <Brain className="h-4 w-4" />
-                AI Structured Breakdown
+              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                <Brain className="h-3.5 w-3.5" />
+                AI Breakdown
               </h3>
-              <div className="bg-slate-800 rounded-lg p-3 text-sm space-y-2 border border-slate-700">
+              <div className="bg-white/[0.03] rounded-xl p-3 text-sm space-y-2 border border-white/5">
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Issue Type</span>
-                  <span className="text-white font-medium">
-                    {incident.ai_issue_type ?? "—"}
-                  </span>
+                  <span className="text-slate-500">Issue</span>
+                  <span className="text-white font-medium">{incident.ai_issue_type ?? "—"}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Client Tier</span>
-                  <span className="text-white font-medium">
-                    {incident.client_tier}
-                  </span>
+                  <span className="text-slate-500">Tier</span>
+                  <span className="text-white font-medium">{incident.client_tier}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Urgency</span>
-                  <span className={cn("font-bold", urgencyColor)}>
-                    {incident.ai_urgency ?? "—"}
-                  </span>
+                  <span className="text-slate-500">Urgency</span>
+                  <span className={cn("font-bold", urgencyColor)}>{incident.ai_urgency ?? "—"}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Confidence</span>
+                  <span className="text-slate-500">Confidence</span>
                   <span className="text-white font-medium">
-                    {incident.ai_confidence != null
-                      ? `${(incident.ai_confidence * 100).toFixed(0)}%`
-                      : "—"}
+                    {incident.ai_confidence != null ? `${(incident.ai_confidence * 100).toFixed(0)}%` : "—"}
                   </span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* AI Reasoning */}
           <div className="space-y-2">
-            <h3 className="text-sm font-semibold text-slate-300">
-              AI Reasoning
-            </h3>
-            <div className="bg-blue-950/30 border border-blue-800/40 rounded-lg p-3 text-sm text-blue-200">
+            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">AI Reasoning</h3>
+            <div className="bg-blue-500/5 border border-blue-500/10 rounded-xl p-3 text-sm text-blue-200">
               {incident.ai_reasoning ?? "No reasoning provided."}
             </div>
           </div>
 
-          {/* AI Suggested Action */}
           <div className="space-y-2">
-            <h3 className="text-sm font-semibold text-slate-300">
-              AI Suggested Action
-            </h3>
-            <div className="bg-amber-950/30 border border-amber-800/40 rounded-lg p-3 text-sm text-amber-200">
+            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Suggested Action</h3>
+            <div className="bg-amber-500/5 border border-amber-500/10 rounded-xl p-3 text-sm text-amber-200">
               {incident.ai_suggested_action ?? "No suggestion."}
             </div>
           </div>
 
-          {/* Audit trail for resolved incidents */}
           {incident.status !== "Open" && (
             <div className="space-y-2">
-              <h3 className="text-sm font-semibold text-slate-300">
-                Resolution Audit
-              </h3>
-              <div className="bg-slate-800 rounded-lg p-3 text-sm space-y-1 border border-slate-700">
+              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Audit Trail</h3>
+              <div className="bg-white/[0.03] rounded-xl p-3 text-sm space-y-1.5 border border-white/5">
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Status</span>
-                  <Badge variant="outline" className="text-xs">
-                    {incident.status.replace("_", " ")}
-                  </Badge>
+                  <span className="text-slate-500">Status</span>
+                  <Badge variant="outline" className="text-[10px]">{incident.status.replace("_", " ")}</Badge>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Resolved By</span>
+                  <span className="text-slate-500">Resolved By</span>
                   <span className="text-white">{incident.resolved_by}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Resolved At</span>
+                  <span className="text-slate-500">Resolved At</span>
                   <span className="text-white">
-                    {incident.resolved_at
-                      ? new Date(incident.resolved_at).toLocaleString()
-                      : "—"}
+                    {incident.resolved_at ? new Date(incident.resolved_at).toLocaleString() : "—"}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Final Action</span>
-                  <span className="text-white text-right max-w-[60%]">
-                    {incident.final_action_taken}
-                  </span>
+                  <span className="text-slate-500">Final Action</span>
+                  <span className="text-white text-right max-w-[60%]">{incident.final_action_taken}</span>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Human-in-the-loop actions */}
           {isResolvable && (
             <>
-              <Separator className="bg-slate-700" />
+              <Separator className="bg-white/5" />
               <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-white">
-                  Manager Decision
-                </h3>
-
+                <h3 className="text-sm font-semibold text-white">Manager Decision</h3>
                 <div className="space-y-2">
-                  <Label className="text-slate-300 text-xs">
-                    Manager Name (required for audit)
-                  </Label>
+                  <Label className="text-slate-400 text-xs">Manager Name (audit)</Label>
                   <Input
                     placeholder="e.g. James Wilson"
                     value={managerName}
                     onChange={(e) => setManagerName(e.target.value)}
-                    className="bg-slate-800 border-slate-600 text-white"
+                    className="bg-white/5 border-white/10 text-white"
                   />
                 </div>
-
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Button
                     onClick={() => handleAction("approve")}
@@ -247,35 +233,31 @@ export function IncidentDetail({
                     )}
                     Approve AI Action
                   </Button>
-
                   <div className="space-y-2">
                     <Textarea
-                      placeholder="Specify override action…"
+                      placeholder="Override action…"
                       value={overrideAction}
                       onChange={(e) => setOverrideAction(e.target.value)}
                       rows={2}
-                      className="bg-slate-800 border-slate-600 text-white resize-none text-sm"
+                      className="bg-white/5 border-white/10 text-white resize-none text-sm"
                     />
                     <Button
                       onClick={() => handleAction("override")}
                       disabled={loading !== null}
                       variant="outline"
-                      className="w-full border-purple-500 text-purple-300 hover:bg-purple-900/30"
+                      className="w-full border-purple-500/50 text-purple-300 hover:bg-purple-500/10"
                     >
                       {loading === "override" ? (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       ) : (
                         <PenLine className="mr-2 h-4 w-4" />
                       )}
-                      Override with Manual Action
+                      Override
                     </Button>
                   </div>
                 </div>
-
                 {error && (
-                  <p className="text-sm text-red-400 bg-red-400/10 rounded-lg p-2">
-                    {error}
-                  </p>
+                  <p className="text-sm text-red-400 bg-red-500/10 rounded-xl p-2 border border-red-500/20">{error}</p>
                 )}
               </div>
             </>

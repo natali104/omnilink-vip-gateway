@@ -9,11 +9,15 @@ import {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { staff_name, client_tier, raw_incident_text } = body;
+    const { staff_name, client_tier, raw_incident_text, industry, location } =
+      body;
 
     if (!staff_name || !client_tier || !raw_incident_text) {
       return NextResponse.json(
-        { error: "staff_name, client_tier, and raw_incident_text are required" },
+        {
+          error:
+            "staff_name, client_tier, and raw_incident_text are required",
+        },
         { status: 400 }
       );
     }
@@ -33,6 +37,8 @@ export async function POST(req: NextRequest) {
         ai_reasoning: triage.reasoning,
         ai_confidence: triage.confidence_score,
         status: "Open",
+        industry: industry || "Hotel",
+        location: location || null,
       })
       .select()
       .single();

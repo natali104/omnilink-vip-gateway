@@ -1,6 +1,19 @@
 # OmniLink VIP Gateway
 
-AI-assisted operational command system for VIP incident resolution in luxury hospitality and aviation. Reliability, explainability, and auditability are the top priorities — AI provides decision-support, humans make the final call.
+**AI-assisted operational command system for VIP incident resolution** across luxury hospitality, aviation, and premium dining.
+
+> Reliability, explainability, and auditability are the top priorities — AI provides decision-support, humans make the final call.
+
+## Live Demo
+
+**[omnilink-vip-gateway.vercel.app](https://omnilink-vip-gateway.vercel.app)**
+
+| Page | URL |
+|------|-----|
+| Landing | [/](https://omnilink-vip-gateway.vercel.app) |
+| Report Incident | [/report](https://omnilink-vip-gateway.vercel.app/report) |
+| Operations Board | [/dashboard](https://omnilink-vip-gateway.vercel.app/dashboard) |
+| Admin Panel | [/admin](https://omnilink-vip-gateway.vercel.app/admin) |
 
 ## Architecture
 
@@ -15,91 +28,88 @@ Operations Board ◄── Supabase Realtime ◄── vip_incidents table
   Duty Manager: Approve AI / Override ──► Audit log in Supabase
 ```
 
+## Supported Industries
+
+| Industry | Client Tiers | Incident Types |
+|----------|-------------|----------------|
+| **Hotels** | Presidential Suite, Platinum, Gold, Silver, Standard | Service Failure, Security, Complaint, VIP Request |
+| **Airlines** | First Class, Business, Premium Economy, Economy | Medical, Luggage, Delay, Security |
+| **Restaurants** | Michelin VIP, Private Dining, Premium, Regular | Medical, Service Failure, Complaint, VIP Request |
+
 ## Tech Stack
 
-| Layer          | Technology                              |
-| -------------- | --------------------------------------- |
-| Framework      | Next.js 14 (App Router)                 |
-| UI             | Tailwind CSS + Shadcn UI                |
-| Database       | Supabase (Postgres + Realtime)          |
-| AI             | OpenAI gpt-4o-mini (Structured Outputs) |
-| Email          | Resend (conditional escalation)         |
-| Hosting        | Vercel                                  |
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js 14 (App Router) |
+| UI | Tailwind CSS + Shadcn UI + Glass Morphism |
+| Database | Supabase (Postgres + Realtime) |
+| AI | OpenAI gpt-4o-mini (Structured JSON Outputs) |
+| Email | Resend (conditional escalation) |
+| Hosting | Vercel |
+
+## Enterprise Workflow (Human-in-the-Loop)
+
+1. **Input** — Staff submits incident via mobile-friendly form with industry selector
+2. **AI Triage** — GPT-4o-mini returns structured JSON: `client_tier`, `issue_type`, `urgency`, `suggested_action`, `reasoning`, `confidence_score`
+3. **Database + Realtime** — Incident saved to Supabase; Operations Board receives it instantly
+4. **Smart Escalation** — Email only when `urgency === "Critical"` AND `confidence > 0.8` AND top-tier client
+5. **Human Override** — Manager reviews AI reasoning, clicks Approve or Override. Decision + timestamp + manager ID logged for audit
+
+## Features
+
+- **3D Interactive Landing Page** — Glass morphism, gradient animations, animated backgrounds
+- **Multi-Industry Support** — Hotels, Airlines, Restaurants with industry-specific tiers
+- **Realtime Operations Board** — Color-coded urgency cards, live stats, industry/urgency/status filters
+- **AI Transparency** — Raw report vs AI breakdown comparison, reasoning always visible
+- **Admin Panel** — Profile, analytics, industry breakdown, decision metrics, recent activity
+- **Smart Escalation** — Conditional email alerts (no spam)
+- **Full Audit Trail** — Every decision logged with manager ID and timestamp
 
 ## Getting Started
 
-### 1. Clone & Install
+### 1. Install
 
 ```bash
 git clone <repo-url> && cd omnilink-vip-gateway
 npm install
 ```
 
-### 2. Set Up Supabase
+### 2. Supabase Setup
 
-1. Create a project at [supabase.com](https://supabase.com)
-2. Open the SQL Editor and run the contents of `supabase/schema.sql`
-3. Copy your project URL, anon key, and service role key
+Run `supabase/schema.sql` in the Supabase SQL Editor.
 
-### 3. Configure Environment Variables
+### 3. Environment Variables
 
 ```bash
 cp .env.example .env.local
 ```
 
-Fill in the values:
+| Variable | Source |
+|----------|--------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Settings → API |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Settings → API |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Settings → API (secret) |
+| `OPENAI_API_KEY` | platform.openai.com |
+| `RESEND_API_KEY` | resend.com |
 
-| Variable                         | Where to find it                         |
-| -------------------------------- | ---------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`       | Supabase → Settings → API               |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY`  | Supabase → Settings → API               |
-| `SUPABASE_SERVICE_ROLE_KEY`      | Supabase → Settings → API (secret)      |
-| `OPENAI_API_KEY`                 | [platform.openai.com](https://platform.openai.com/api-keys) |
-| `RESEND_API_KEY`                 | [resend.com](https://resend.com)         |
-| `ESCALATION_EMAIL_TO`            | Duty manager email                       |
-| `ESCALATION_EMAIL_FROM`          | Verified sender domain in Resend         |
-
-### 4. Run Locally
+### 4. Run
 
 ```bash
 npm run dev
 ```
-
-- Landing page: [http://localhost:3000](http://localhost:3000)
-- Ground Staff form: [http://localhost:3000/report](http://localhost:3000/report)
-- Operations Board: [http://localhost:3000/dashboard](http://localhost:3000/dashboard)
-
-### 5. Deploy to Vercel
-
-```bash
-vercel --prod
-```
-
-Add all environment variables in the Vercel dashboard under Settings → Environment Variables.
-
-## Enterprise Workflow
-
-1. **Input** — Ground staff submits a rapid incident report via `/report`
-2. **AI Triage** — The API sends the raw text to OpenAI with a strict JSON schema enforcing: `client_tier`, `issue_type`, `urgency`, `suggested_action`, `reasoning`, `confidence_score`
-3. **Database + Realtime** — The structured incident is saved to Supabase; the Operations Board receives it instantly via Realtime
-4. **Smart Escalation** — Resend sends an email only when `urgency === "Critical"` AND `confidence_score > 0.8` AND `client_tier` is top-level (First Class / Platinum)
-5. **Human Override** — The Duty Manager reviews the AI reasoning, then clicks **Approve AI Action** or **Override with Manual Action**. The decision, manager ID, and timestamp are logged for the audit trail
-
-## Database Schema
-
-See `supabase/schema.sql` for the complete DDL. Key table: `vip_incidents` with columns for raw input, AI-generated fields, and human-in-the-loop audit trail.
 
 ## Project Structure
 
 ```
 src/
 ├── app/
-│   ├── api/incidents/          # POST (create + triage) and GET (list)
+│   ├── api/incidents/          # POST (create + triage), GET (list)
 │   │   └── resolve/            # PATCH (approve / override)
-│   ├── dashboard/              # Operations Command Board (Realtime)
-│   ├── report/                 # Ground Staff incident form
+│   ├── admin/                  # Admin panel + analytics
+│   ├── dashboard/              # Realtime Operations Board
+│   ├── report/                 # Multi-industry incident form
 │   ├── layout.tsx
-│   └── page.tsx                # Landing page
+│   └── page.tsx                # 3D interactive landing page
 ├── components/
 │   ├── ui/                     # Shadcn UI primitives
 │   ├── incident-card.tsx       # Color-coded urgency card
@@ -108,10 +118,10 @@ src/
 │   ├── openai-triage.ts        # OpenAI structured output integration
 │   ├── resend-escalation.ts    # Conditional email logic
 │   ├── supabase-browser.ts     # Browser client (Realtime)
-│   ├── supabase-server.ts      # Server client (service role)
-│   └── utils.ts                # cn() utility
+│   ├── supabase-server.ts      # Server client
+│   └── utils.ts
 ├── types/
-│   └── incident.ts             # TypeScript interfaces
+│   └── incident.ts
 supabase/
-└── schema.sql                  # Database DDL
+└── schema.sql
 ```
